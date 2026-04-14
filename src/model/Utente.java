@@ -14,6 +14,16 @@ public class Utente {
     @Column(name="eta")
     private int eta;
 
+    public Utente(String nome, String email, int eta){
+        this.nome=nome;
+        this.email=email;
+        this.eta=eta;
+    }
+
+    public Utente(){
+
+    }
+
     public Long getId() {
         return id;
     }
@@ -44,16 +54,5 @@ public class Utente {
 
     public void setEta(int eta) {
         this.eta = eta;
-    }
-
-
-    public Utente(String nome, String email, int eta){
-        this.nome=nome;
-        this.email=email;
-        this.eta=eta;
-    }
-
-    public Utente(){
-
     }
 }

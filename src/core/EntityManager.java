@@ -81,5 +81,40 @@ public class EntityManager {
                 campo.set(istanza, valore);
             }
         }
+        return istanza;
+    }
+
+    public <T> void update(T value) throws Exception{
+        Class<?> c = value.getClass();
+        if(!c.isAnnotationPresent(Table.class)){
+            throw new Exception("Classe senza @Table");
+        }
+        String nomeTabella=c.getAnnotation(Table.class).name();
+        List<String> setClauses = new ArrayList<>();
+        List<Object> valori = new ArrayList<>();
+        String colonnaId = "";
+        Object valoreId = null;
+        Field[] campi = c.getDeclaredFields();
+
+        for (Field campo:campi){
+            campo.setAccessible(true);
+            if (campo.isAnnotationPresent(Id.class)){
+                colonnaId=campo.getAnnotation(Column.class).name();
+                valoreId=campo.get(value);
+                continue;
+            }
+            if (campo.isAnnotationPresent(Column.class)){
+                setClauses.add(campo.getAnnotation(Column.class).name() +  " = ?");
+                valori.add(campo.get(value));
+            }
+        }
+    String nomeColonne = String.join(",  ", setClauses); 
+    String sqlFinale = String.format("UPDATE %s SET %s WHERE %s = ?", nomeTabella, nomeColonne, colonnaId);
+    PreparedStatement ps = connection.prepareStatement(sqlFinale);
+    for (int i = 0; i < valori.size(); i++) {
+            ps.setObject(i+1, valori.get(i));
+        }
+    ps.setObject(valori.size() + 1, valoreId);    
+    ps.executeUpdate();
     }
 }

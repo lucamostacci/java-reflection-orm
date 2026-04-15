@@ -1,0 +1,6 @@
+core\EntityManager.class
+Main.class
+annotation\Column.class
+annotation\Table.class
+model\Utente.class
+annotation\Id.class

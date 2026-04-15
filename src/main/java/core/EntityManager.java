@@ -78,7 +78,10 @@ public class EntityManager {
             if (campo.isAnnotationPresent(Column.class)){
                 nomeColonnaRisultato = campo.getAnnotation(Column.class).name();
                 Object valore = rs.getObject(nomeColonnaRisultato);
-                campo.set(istanza, valore);
+                if (valore instanceof Integer && campo.getType() == Long.class) {
+                    valore = ((Integer) valore).longValue();
+                }
+            campo.set(istanza, valore);
             }
         }
         return istanza;
@@ -135,7 +138,7 @@ public class EntityManager {
         }
         String sqlFinale = String.format("DELETE FROM %s WHERE %s = ?", nomeTabella, nomeColonna);
         PreparedStatement ps = connection.prepareStatement(sqlFinale);
-        ps.setLong(1, id)
+        ps.setLong(1, id);
         ps.executeUpdate();
     }
 }

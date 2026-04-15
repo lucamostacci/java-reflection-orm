@@ -2,6 +2,7 @@ package core;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +38,6 @@ public class EntityManager {
                 valori.add(campo.get(value));
             }
         }
-
         String nomeColonne = String.join(",  ", colonne);
         List<String> numeroElementi = Collections.nCopies(colonne.size(), "?");
         String valoriStringaUniti = String.join(", ", numeroElementi);
@@ -47,5 +47,39 @@ public class EntityManager {
             ps.setObject(i+1, valori.get(i));
         }
         ps.executeUpdate();
+    }
+
+    public <T> T findById(Class<T> classe, Long id) throws Exception{
+        String nomeColonna = "";
+        if(!classe.isAnnotationPresent(Table.class)){
+            throw new Exception("Classe senza @Table");
+        }
+        String nomeTabella = classe.getAnnotation(Table.class).name();
+        Field[] campi = classe.getDeclaredFields();
+
+        for (Field campo:campi){
+            campo.setAccessible(true);
+            if (campo.isAnnotationPresent(Id.class)){
+                nomeColonna = campo.getAnnotation(Column.class).name();
+                break;
+            }
+        }
+        String sqlFinale = String.format("SELECT * FROM %s WHERE %s = ?", nomeTabella, nomeColonna);
+        PreparedStatement ps = connection.prepareStatement(sqlFinale);
+        ps.setLong(1, id);
+        ResultSet rs = ps.executeQuery();
+        if(!rs.next()){
+            return null;
+        }
+        T istanza = classe.getDeclaredConstructor().newInstance();
+        String nomeColonnaRisultato = "";
+        for (Field campo : campi){
+            campo.setAccessible(true);
+            if (campo.isAnnotationPresent(Column.class)){
+                nomeColonnaRisultato = campo.getAnnotation(Column.class).name();
+                Object valore = rs.getObject(nomeColonnaRisultato);
+                campo.set(istanza, valore);
+            }
+        }
     }
 }

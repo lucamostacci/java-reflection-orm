@@ -117,4 +117,25 @@ public class EntityManager {
     ps.setObject(valori.size() + 1, valoreId);    
     ps.executeUpdate();
     }
+
+    public <T> void delete(Class<T> classe, Long id) throws Exception{
+        if(!classe.isAnnotationPresent(Table.class)){
+                throw new Exception("Classe senza @Table");
+        }
+        String nomeTabella = classe.getAnnotation(Table.class).name();
+        Field[] campi = classe.getDeclaredFields();
+        String nomeColonna ="";
+
+        for (Field campo:campi){
+            campo.setAccessible(true);
+            if (campo.isAnnotationPresent(Id.class)){
+                nomeColonna = campo.getAnnotation(Column.class).name();
+                break;
+            }
+        }
+        String sqlFinale = String.format("DELETE FROM %s WHERE %s = ?", nomeTabella, nomeColonna);
+        PreparedStatement ps = connection.prepareStatement(sqlFinale);
+        ps.setLong(1, id)
+        ps.executeUpdate();
+    }
 }
